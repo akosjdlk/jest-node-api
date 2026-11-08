@@ -95,7 +95,7 @@ module.exports.deleteMovie = async (req, res) => {
     try {
         await Model.findByIdAndDelete(req.params.id).orFail();
 
-        return res.status(204)
+        return res.status(204).send();
     } catch (error) {
         return handleError(res, error);
     }
