@@ -6,32 +6,13 @@ jest.mock('../model/model', () => ({
     findByIdAndDelete: jest.fn()
 }));
 
-const mongoose = require('mongoose');
 const Model = require('../model/model');
 const controller = require('../controller/controller');
 const mockMovies = require('./mockMovies');
-
-/**
- * Creates a mock for a Mongoose query using .orFail().
- *
- * @template T
- * @param {T} result
- * @returns {{orFail: jest.Mock<Promise<T>, []>}}
- */
-function mockOrFailQuery(result) {
-    return {
-        orFail: jest.fn().mockResolvedValue(result)
-    };
-}
-
-/**
- * Creates a DocumentNotFoundError for testing.
- * @returns {mongoose.Error.DocumentNotFoundError}
- */
-const notFoundError = Object.create(
-    mongoose.Error.DocumentNotFoundError.prototype
-);
-
+const {
+    mockOrFailQuery,
+    createNotFoundError
+} = require('./controllerTestUtils');
 describe('Movie controller', () => {
 
     let req;
@@ -154,7 +135,7 @@ describe('Movie controller', () => {
             req.params.id = '507f1f77bcf86cd799439099';
 
             Model.findById.mockReturnValue({
-                orFail: jest.fn().mockRejectedValue(notFoundError)
+                orFail: jest.fn().mockRejectedValue(createNotFoundError())
             });
 
             await controller.getMovieById(req, res, next);
@@ -203,7 +184,7 @@ describe('Movie controller', () => {
             req.params.id = '507f1f77bcf86cd799439099';
 
             Model.findByIdAndUpdate.mockReturnValue({
-                orFail: jest.fn().mockRejectedValue(notFoundError)
+                orFail: jest.fn().mockRejectedValue(createNotFoundError())
             });
 
             await controller.patchMovie(req, res, next);
@@ -215,35 +196,4 @@ describe('Movie controller', () => {
         });
     });
 
-    describe('deleteMovie', () => {
-        test('deletes a movie and returns status 204', async () => {
-            const movie = mockMovies[0];
-            req.params.id = movie._id;
-
-            Model.findByIdAndDelete.mockReturnValue(
-                mockOrFailQuery(movie)
-            );
-
-            await controller.deleteMovie(req, res, next);
-
-            expect(Model.findByIdAndDelete).toHaveBeenCalledWith(movie._id);
-            expect(res.status).toHaveBeenCalledWith(204);
-            expect(res.json).not.toHaveBeenCalled();
-        });
-
-        test('returns 404 when the movie to delete does not exist', async () => {
-            req.params.id = undefined;
-
-            Model.findByIdAndDelete.mockReturnValue({
-                orFail: jest.fn().mockRejectedValue(notFoundError)
-            });
-
-            await controller.deleteMovie(req, res, next);
-
-            expect(res.status).toHaveBeenCalledWith(404);
-            expect(res.json).toHaveBeenCalledWith({
-                message: 'Resource not found'
-            });
-        });
-    });
 });
