@@ -62,6 +62,7 @@ describe('GET movie endpoints', () => {
             await controller.getMovies(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(500);
+            expect(consoleSpy).toHaveBeenCalledWith(error);
             expect(res.json).toHaveBeenCalledWith({
                 message: 'Internal server error'
             });
@@ -102,11 +103,11 @@ describe('GET movie endpoints', () => {
         });
 
         test('returns 400 when the movie ID is invalid', async () => {
-            req.params.id = undefined;
+            req.params.id = "asd";
 
             Model.findById.mockReturnValue({
                 orFail: jest.fn().mockRejectedValue(
-                    new mongoose.Error.CastError('ObjectId', undefined, '_id')
+                    new mongoose.Error.CastError('ObjectId', req.params.id, '_id')
                 )
             });
 
@@ -131,6 +132,7 @@ describe('GET movie endpoints', () => {
             await controller.getMovieById(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(500);
+            expect(consoleSpy).toHaveBeenCalledWith(error);
             expect(res.json).toHaveBeenCalledWith({
                 message: 'Internal server error'
             });
