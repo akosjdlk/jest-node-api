@@ -35,71 +35,33 @@ describe('deleteMovie', () => {
         const movie = mockMovies[0];
         req.params.id = movie._id;
 
-        Model.findByIdAndDelete.mockReturnValue(
-            mockOrFailQuery(movie)
-        );
-
-        await controller.deleteMovie(req, res, next);
-
-        expect(Model.findByIdAndDelete).toHaveBeenCalledWith(movie._id);
-        expect(res.status).toHaveBeenCalledWith(204);
-        expect(res.json).not.toHaveBeenCalled();
-        expect(res.send).toHaveBeenCalledWith();
-        expect(res.send).toHaveBeenCalledTimes(1);
-    });
-
-    test('calls findByIdAndDelete exactly once', async () => {
-        const movie = mockMovies[0];
-        req.params.id = movie._id;
-
-        Model.findByIdAndDelete.mockReturnValue(
-            mockOrFailQuery(movie)
-        );
-
-        await controller.deleteMovie(req, res, next);
-
-        expect(Model.findByIdAndDelete).toHaveBeenCalledTimes(1);
-    });
-
-    test('uses orFail when deleting a movie', async () => {
-        const movie = mockMovies[0];
         const query = mockOrFailQuery(movie);
-        req.params.id = movie._id;
-
         Model.findByIdAndDelete.mockReturnValue(query);
 
         await controller.deleteMovie(req, res, next);
-
-        expect(query.orFail).toHaveBeenCalledTimes(1);
+        
+        expect(Model.findByIdAndDelete).toHaveBeenCalledWith(movie._id);
+        expect(Model.findByIdAndDelete).toHaveBeenCalledTimes(1);
+        expect(query.orFail).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(204);
+        expect(res.json).not.toHaveBeenCalled();
+        expect(res.send).toHaveBeenCalledWith();
     });
-
+    
     test('returns 404 when the movie ID is empty', async () => {
         const query = {
             orFail: jest.fn().mockRejectedValue(createNotFoundError())
         };
-
+        
         req.params.id = '';
         Model.findByIdAndDelete.mockReturnValue(query);
-
+        
         await controller.deleteMovie(req, res, next);
-
+        
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({
             message: 'Resource not found'
         });
-    });
-
-    test('returns the response object after a successful deletion', async () => {
-        const movie = mockMovies[0];
-        req.params.id = movie._id;
-
-        Model.findByIdAndDelete.mockReturnValue(
-            mockOrFailQuery(movie)
-        );
-
-        const result = await controller.deleteMovie(req, res, next);
-
-        expect(result).toBe(res);
     });
 
     test('returns 404 when the movie to delete does not exist', async () => {

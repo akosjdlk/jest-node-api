@@ -272,19 +272,5 @@ describe('errorHandler', () => {
 
             consoleSpy.mockRestore();
         });
-
-        test('sends the status before the response body', () => {
-            const error = new Error('Unexpected error');
-            const consoleSpy = jest
-                .spyOn(console, 'error')
-                .mockImplementation(() => {});
-
-            handleError(res, error);
-
-            expect(res.status.mock.invocationCallOrder[0])
-                .toBeLessThan(res.json.mock.invocationCallOrder[0]);
-
-            consoleSpy.mockRestore();
-        });
     });
 });

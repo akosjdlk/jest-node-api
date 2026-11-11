@@ -33,17 +33,19 @@ describe('GET movie endpoints', () => {
 
     describe('getMovies', () => {
         test('returns all movies with status 200', async () => {
-            Model.find.mockResolvedValue(mockMovies);
+            const query = mockOrFailQuery(mockMovies);
+            Model.find.mockReturnValue(query);
 
             await controller.getMovies(req, res, next);
 
             expect(Model.find).toHaveBeenCalled();
+            expect(query.orFail).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(mockMovies);
         });
 
         test('returns an empty array when there are no movies', async () => {
-            Model.find.mockResolvedValue([]);
+            Model.find.mockReturnValue(mockOrFailQuery([]));
 
             await controller.getMovies(req, res, next);
 
@@ -57,7 +59,9 @@ describe('GET movie endpoints', () => {
                 .spyOn(console, 'error')
                 .mockImplementation(() => {});
 
-            Model.find.mockRejectedValue(error);
+            Model.find.mockReturnValue({
+                orFail: jest.fn().mockRejectedValue(error)
+            });
 
             await controller.getMovies(req, res, next);
 

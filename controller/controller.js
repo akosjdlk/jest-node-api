@@ -41,7 +41,7 @@ module.exports.postMovie = async (req, res) => {
  */
 module.exports.getMovies = async (req, res) => {
     try {
-        const movies = await Model.find();
+        const movies = await Model.find().orFail();
 
         return res.status(200).json(movies);
     } catch (error) {
